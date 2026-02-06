@@ -617,12 +617,12 @@ static int self_test_bisect(void)
 						return -1;
 					}
 				} else {
-					assert(result && *result == target);
 					if (!result) {
 						LOG("Failed to find target %d (size %zu, hide %zu)",
 						     target, array_sz, hide);
 						return -1;
 					}
+					assert(result && *result == target);
 					if (*result != target) {
 						LOG("Wrongly found %d for target %d (size %zu, hide %zu)",
 						     *result, target, array_sz,
