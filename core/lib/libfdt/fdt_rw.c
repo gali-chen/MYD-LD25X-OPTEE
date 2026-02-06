@@ -53,13 +53,23 @@ static int fdt_splice_(void *fdt, void *splicepoint, int oldlen, int newlen)
 {
 	char *p = splicepoint;
 	char *end = (char *)fdt + fdt_data_size_(fdt);
+	ptrdiff_t off = p - (char *)fdt;
+	ptrdiff_t data_size = end - (char *)fdt;
+	ptrdiff_t new_data_size;
 
-	if (((p + oldlen) < p) || ((p + oldlen) > end))
+	/* Validate that [p, p + oldlen) lies within the current data region. */
+	if (oldlen < 0)
 		return -FDT_ERR_BADOFFSET;
-	if ((p < (char *)fdt) || ((end - oldlen + newlen) < (char *)fdt))
+	if (off < 0 || (ptrdiff_t)oldlen > data_size - off)
 		return -FDT_ERR_BADOFFSET;
-	if ((end - oldlen + newlen) > ((char *)fdt + fdt_totalsize(fdt)))
+
+	/* Compute new data size after splice and ensure it stays within blob. */
+	new_data_size = data_size - oldlen + newlen;
+	if (new_data_size < 0)
+		return -FDT_ERR_BADOFFSET;
+	if (new_data_size > (ptrdiff_t)fdt_totalsize(fdt))
 		return -FDT_ERR_NOSPACE;
+
 	memmove(p + newlen, p + oldlen, end - p - oldlen);
 	return 0;
 }
